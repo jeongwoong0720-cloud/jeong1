@@ -1,0 +1,8 @@
+{
+  "name": "Copy of 경찰 사건 발생 보고 시스템",
+  "description": "사건 유형, 일시, 장소 및 상세 내용을 입력하여 정형화된 경찰 보고서를 생성하는 애플리케이션입니다.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
