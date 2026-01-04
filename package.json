@@ -1,5 +1,5 @@
 {
-  "name": "copy-of-경찰-사건-발생-보고-시스템",
+  "name": "경찰-사건-발생-보고-시스템-(v2.0)",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "react-dom": "^19.2.3",
-    "react": "^19.2.3"
+    "react": "^19.2.3",
+    "@google/genai": "^1.34.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

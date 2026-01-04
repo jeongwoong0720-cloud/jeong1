@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IncidentType, ReportType, ReportData, PersonInfo } from './types';
 import IncidentTypeButton from './components/IncidentTypeButton';
 import ReportDisplay from './components/ReportDisplay';
+import ApiKeyModal from './components/ApiKeyModal';
 
 const EUP_MYEON_LIST = [
   '영암읍', '삼호읍', '덕진면', '금정면', '신북면', 
@@ -18,8 +19,8 @@ const App: React.FC = () => {
   const [detailAddress, setDetailAddress] = useState<string>('');
   
   const [description, setDescription] = useState<string>('');
-  const [apprehensionProcess, setApprehensionProcess] = useState<string>(''); // 단속 시 적발 경위
-  const [siteSituation, setSiteSituation] = useState<string>(''); // 화재 시 현장 상황
+  const [apprehensionProcess, setApprehensionProcess] = useState<string>('');
+  const [siteSituation, setSiteSituation] = useState<string>('');
   
   const [involvedReporter, setInvolvedReporter] = useState<string>('');
   
@@ -35,7 +36,16 @@ const App: React.FC = () => {
   const [reporterTitle, setReporterTitle] = useState<string>('상황관리관');
 
   const [showReport, setShowReport] = useState<boolean>(false);
+  const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
   const [generatedReport, setGeneratedReport] = useState<ReportData | null>(null);
+
+  // 초기 로드 시 키 확인
+  useEffect(() => {
+    const savedKey = localStorage.getItem('GEMINI_API_KEY_ENC');
+    if (!savedKey) {
+      // 키가 없으면 처음 한 번은 안내 팝업을 띄울 수 있습니다.
+    }
+  }, []);
 
   const handleSubmit = () => {
     const report: ReportData = {
@@ -73,14 +83,10 @@ const App: React.FC = () => {
   const isDomesticViolence = incidentType === IncidentType.DOMESTIC_VIOLENCE;
   const isFire = incidentType === IncidentType.FIRE;
 
-  // 일시 레이블 결정
   const dateTimeLabel = reportType === ReportType.OCCURRENCE ? '발생 일시' :
                         reportType === ReportType.APPREHENSION ? '검거 일시' : '단속 일시';
 
-  // 내용 레이블
   const descriptionLabel = isEnforcement ? '위반 사항' : '신고 내용';
-
-  // 피해 상황 레이블 결정
   const damageLabel = isDomesticViolence ? '피해자 보호조치' : '피해 상황';
 
   return (
@@ -90,7 +96,13 @@ const App: React.FC = () => {
         <button className="text-slate-900 dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
           <span className="material-symbols-outlined">close</span>
         </button>
-        <h2 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">사건 발생 보고 작성</h2>
+        <h2 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">사건 발생 보고 작성</h2>
+        <button 
+          onClick={() => setShowKeyModal(true)}
+          className="text-slate-900 dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+        >
+          <span className="material-symbols-outlined">settings</span>
+        </button>
       </div>
 
       <div className="flex flex-col max-w-2xl mx-auto w-full">
@@ -174,7 +186,6 @@ const App: React.FC = () => {
           <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2">{isEnforcement ? '단속 정보' : '사건 정보'}</h3>
           <div className="px-4 py-2 flex flex-col gap-4">
             
-            {/* 위반 사항 / 신고 내용 */}
             <label className="flex flex-col w-full">
               <span className="text-sm font-medium text-slate-500 mb-2">{descriptionLabel}</span>
               <textarea 
@@ -185,7 +196,6 @@ const App: React.FC = () => {
               />
             </label>
 
-            {/* 적발 경위 - 단속일 때만 */}
             {isEnforcement && (
               <label className="flex flex-col w-full">
                 <span className="text-sm font-medium text-slate-500 mb-2">적발 경위</span>
@@ -198,7 +208,6 @@ const App: React.FC = () => {
               </label>
             )}
 
-            {/* 현장 상황 - 화재일 때만 */}
             {isFire && (
               <label className="flex flex-col w-full">
                 <span className="text-sm font-medium text-slate-500 mb-2">현장 상황</span>
@@ -213,7 +222,6 @@ const App: React.FC = () => {
 
             <div className="h-px bg-gray-800 my-2"></div>
 
-            {/* Reporter Info */}
             <label className="flex flex-col">
               <span className="text-sm font-medium text-slate-500 mb-2">신고자</span>
               <input 
@@ -224,7 +232,6 @@ const App: React.FC = () => {
               />
             </label>
 
-            {/* Suspect Split Fields */}
             <div className="flex flex-col gap-2">
               <span className="text-sm font-medium text-slate-500">피의자 인적사항</span>
               <div className="grid grid-cols-3 gap-3">
@@ -253,7 +260,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Victim Split Fields - 단속일 때는 제외 */}
             {!isEnforcement && (
               <div className="flex flex-col gap-2">
                 <span className="text-sm font-medium text-slate-500">피해자 인적사항</span>
@@ -286,7 +292,6 @@ const App: React.FC = () => {
             
             <div className="h-px bg-gray-800 my-2"></div>
 
-            {/* 피해 상황 - 단속 제외, 화재 시 인피/물피 분할 */}
             {!isEnforcement && (
               <>
                 {isFire ? (
@@ -346,7 +351,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* 조치사항 Section (일시 및 장소와 동일한 폰트 및 스타일 적용) */}
+        {/* 조치사항 Section */}
         <div className="h-px bg-gray-200 dark:bg-gray-800 my-6 mx-4"></div>
         <div className="flex flex-col">
           <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2">조치사항</h3>
@@ -372,11 +377,19 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      {/* Report Modal */}
+      {/* Modals */}
       {showReport && generatedReport && (
         <ReportDisplay 
           report={generatedReport} 
           onClose={() => setShowReport(false)} 
+        />
+      )}
+      {showKeyModal && (
+        <ApiKeyModal 
+          onClose={() => setShowKeyModal(false)}
+          onKeyUpdate={(newKey) => {
+            // 전역 상태가 필요하다면 여기서 처리
+          }}
         />
       )}
     </div>
